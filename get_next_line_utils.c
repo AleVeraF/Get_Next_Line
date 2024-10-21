@@ -79,5 +79,3 @@ char	*ft_strjoin(char const *s1, char const *s2)
 	ft_strlcpy(copy + ft_strlen(s1), s2, ft_strlen(s2) + 1);
 	return (copy);
 }
-
-

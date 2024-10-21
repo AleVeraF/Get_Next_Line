@@ -39,7 +39,6 @@ char	*concat_store(char **store, char *buffer)
 
 	temp = ft_strjoin(*store, buffer);
 	free(*store);
-	//free(buffer);
 	return (temp);
 }
 
@@ -56,8 +55,6 @@ char	*extrac_line(char **store)
 	else
 		line_len = ft_strlen(*store);
 	line = (char *) malloc(line_len + 1);
-	if (!line)
-		return (NULL);
 	ft_strlcpy(line, *store, line_len + 1);
 	if (new_line)
 	{
@@ -73,16 +70,32 @@ char	*extrac_line(char **store)
 	return (line);
 }
 
+int	handle_error_or_eof(char **store, char *buffer, ssize_t bytes_read)
+{
+	if (bytes_read < 0 || (bytes_read == 0
+			&& (*store == NULL || **store == '\0')))
+	{
+		free(buffer);
+		free(*store);
+		*store = NULL;
+		return (1);
+	}
+	return (0);
+}
+
 char	*get_next_line(int fd)
 {
 	static char	*store = NULL;
-	char	*buffer;
-	ssize_t			bytes_read;
+	char		*buffer;
+	ssize_t		bytes_read;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
-		return NULL;
+		return (NULL);
 	buffer = (char *)malloc((BUFFER_SIZE + 1) * sizeof(char));
-	while ((bytes_read = read(fd, buffer, BUFFER_SIZE)) > 0)
+	if (!buffer)
+		return (NULL);
+	bytes_read = read(fd, buffer, BUFFER_SIZE);
+	while (bytes_read > 0)
 	{
 		buffer[bytes_read] = '\0';
 		if (store == NULL)
@@ -90,28 +103,14 @@ char	*get_next_line(int fd)
 		else
 			store = concat_store(&store, buffer);
 		if (ft_strchr(store, '\n'))
-			break;
+			break ;
+		bytes_read = read(fd, buffer, BUFFER_SIZE);
 	}
-
-	if (bytes_read < 0)
-	{
-		free(buffer);
-		free(store);
-		store = NULL;
-		return NULL;
-	}
-
-	if (bytes_read == 0 && (store == NULL || *store == '\0'))
-	{
-		free(buffer);
-		free (store); // liberamos la memoria si no hay datos
-		store = NULL; // restablecemos store
-		return NULL;
-	}
+	if (handle_error_or_eof(&store, buffer, bytes_read))
+		return (NULL);
 	free(buffer);
-	return extrac_line(&store);// función para extraer cada linea
+	return (extrac_line(&store));
 }
-
 #include <fcntl.h>
 
 int main(void)
