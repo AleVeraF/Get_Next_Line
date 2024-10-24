@@ -111,7 +111,7 @@ char	*get_next_line(int fd)
 	free(buffer);
 	return (extrac_line(&store));
 }
-#include <fcntl.h>
+/*#include <fcntl.h>
 
 int main(void)
 {
@@ -133,4 +133,4 @@ int main(void)
 	close(fd);
 
     return (0);
-}
+}*/
